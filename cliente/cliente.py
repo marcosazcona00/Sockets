@@ -7,7 +7,7 @@ PORT = 6001        # The port used by the server
 def output_mensajes(s):
     while True:
         mensaje = s.recv(1024).decode('utf-8').rstrip()
-        print(mensaje) 
+        print('\n',mensaje) 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.connect((HOST, PORT))
