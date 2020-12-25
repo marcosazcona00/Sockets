@@ -8,8 +8,6 @@ import threading
     SOCK_DGRAM is for UDP protocol
 '''
 
-#s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
 class ServerSocket(socket.socket):
     def __init__(self,*args,**kwargs):
         super(ServerSocket,self).__init__(*args,**kwargs)
@@ -28,7 +26,7 @@ class ServerSocket(socket.socket):
 
 
     def _config_server(self):
-        self.bind((self._ip,self._puerto))
+        self.bind((self._ip,self._puerto)) ### Le decimos al servidor que escuche en esta IP:Puerto
         self.listen()   
         self.hilo_principal = threading.Thread(target = self._enviar_mensaje_clientes)
         self.hilo_principal.start()
@@ -51,26 +49,34 @@ class ServerSocket(socket.socket):
         conn.close()
 
     def _enviar_mensaje_clientes(self):
+        '''
+            Esta funcion es un hilo del servidor principal que envia mensajes a los clientes conectados
+        '''
         while True:
             print('Server esperando mandar mensaje')
+            
             ### Esperamos a que algun cliente envie un mensaje que despierte al hilo de envio de mensajes 
             self.sem_server.acquire()
             
             ### Sacamos el mensaje de la cola
             self.sem_buffer_mensajes.acquire()
-            mensaje_enviar = self.buffer_mensajes.pop()
+            info_cliente = self.buffer_mensajes.pop()
             self.sem_buffer_mensajes.release()
 
             ### Enviamos le mensaje al cliente
-            ### TODO excluir al cliente que mando el mensaje 
+            mensaje_enviar = info_cliente[0]
+            conn_cliente = info_cliente[1]
             for cliente in self.clientes:
-                cliente[0].send(mensaje_enviar.encode('utf-8'))
+                if conn_cliente != cliente[0]:
+                    cliente[0].send(mensaje_enviar.encode('utf-8'))
         
 
     def _atender_cliente(self,conn,addr):
         '''
             Esta funcion se asocia a un hilo para atender a un cliente particular
+            Si recibe exit como mensaje cierra la conexion
         '''
+        print(conn)
         print(f'Bienvenido {addr}!')
         nombre_usuario = (conn.recv(1024)).decode('utf-8').rstrip()
         while True:
@@ -80,7 +86,7 @@ class ServerSocket(socket.socket):
             
             ### Guardamos el mensaje en el buffer
             self.sem_buffer_mensajes.acquire()
-            self.buffer_mensajes.append(mensaje_enviar)
+            self.buffer_mensajes.append([mensaje_enviar,conn])
             self.sem_buffer_mensajes.release()
             
             ### Le avisamos al hilo del server que envie los mensajes
@@ -99,7 +105,7 @@ class ServerSocket(socket.socket):
 
 
     def accept(self):
-        conn, addr = super(ServerSocket,self).accept()
-        self.clientes.append((conn,addr))
+        conn, addr = super(ServerSocket,self).accept() ### Aceptamos la conexion de un cliente
+        self.clientes.append((conn,addr)) 
         hilo_cliente = threading.Thread(target = self._atender_cliente, args = (conn,addr))
         hilo_cliente.start()
