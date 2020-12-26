@@ -82,7 +82,7 @@ class ServerSocket(socket.socket):
         while True:
             data = (conn.recv(1024)).decode('utf-8').rstrip()
             
-            mensaje_enviar = f'Mensaje de: {nombre_usuario} --> {data}'
+            mensaje_enviar = f'{nombre_usuario}: {data}'
             
             ### Guardamos el mensaje en el buffer
             self.sem_buffer_mensajes.acquire()
