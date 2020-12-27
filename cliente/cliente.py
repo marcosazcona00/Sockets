@@ -5,8 +5,8 @@ from interfaz.Interfaz import Interfaz
 
 interfaz = Interfaz()
 
-HOST = '192.168.1.39'  # The server's hostname or IP address
-PORT = 6001        # The port used by the server
+HOST =   # The server's hostname or IP address
+PORT =   # The port used by the server
 
 def enviar_mensaje(s,mensaje):
     '''
