@@ -1,1 +1,2 @@
 sockets==1.0.0
+PySimpleGUI==4.32.1 
